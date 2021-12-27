@@ -1,16 +1,20 @@
 // react 
-import next, { GetStaticProps } from 'next';
 import { useState } from 'react';
+// next
+import { GetStaticProps } from 'next';
+import Head from 'next/head';
+import Link from 'next/link';
 // prismic 
 import { getPrismicClient } from '../services/prismic';
 import Prismic from '@prismicio/client';
 // othes
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+import { FiCalendar, FiUser } from 'react-icons/fi';
 // styles
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
-import ResolvedApi from '@prismicio/client/types/ResolvedApi';
+
 
 interface Post {
   uid?: string;
@@ -32,6 +36,7 @@ interface HomeProps {
 }
 
 export default function Home(props: HomeProps) {
+
 
   // Criando estados com os parametros recebidos por GetStaticProps
   const [posts, setPosts] = useState<Post[]>(props.postsPagination?.results || []);
@@ -82,34 +87,40 @@ export default function Home(props: HomeProps) {
   }
 
   return (
-
     <>
-      <ul>
+      <Head>
+        <title>Home - MyBlog</title>
+      </Head>
+      <header className={`${styles.header} ${commonStyles.pageSize}`}>
+        <img src='/images/logo.svg' alt='logo' />
+      </header>
+      <main className={`${styles.mainContainer} ${commonStyles.pageSize}`}>
         {
           posts.map(post => (
-            <li key={post.uid}>
-              <h3>{post.data.title}</h3>
-              <p>{post.data.subtitle}</p>
-              <div>
-                <img src='/images/calendar.svg' />
-                <span>{post.first_publication_date}</span>
-                <img src='/images/user.svg' /> <span>{post.data.author}</span>
-              </div>
-            </li>
+            <Link href={`/post/${post.uid}`} key={post.uid}>
+              <a className={styles.post}>
+                <h3>{post.data.title}</h3>
+                <p>{post.data.subtitle}</p>
+                <div>
+                  <FiCalendar />
+                  <time>{post.first_publication_date}</time>
+                  <FiUser />
+                  <span>{post.data.author}</span>
+                </div>
+              </a>
+            </Link>
           ))
         }
-      </ul>
-      {
-        nextPage ? (
-          <button onClick={loadNextPageHandle}>
-            Carregar mais posts
-          </button>
-        ) : ''
-      }
+        {
+          nextPage ? (
+            <button className={styles.nextPageButton} onClick={loadNextPageHandle}>
+              Carregar mais posts
+            </button>
+          ) : ''
+        }
+      </main>
     </>
-
   )
-
 }
 
 export const getStaticProps: GetStaticProps = async () => {
@@ -159,4 +170,4 @@ export const getStaticProps: GetStaticProps = async () => {
     revalidate: 60, // Segundos 
   }
 
-};
+};  
