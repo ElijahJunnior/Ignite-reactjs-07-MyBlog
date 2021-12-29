@@ -58,7 +58,7 @@ export default function Home(props: HomeProps) {
         return {
           uid: post.uid,
           first_publication_date: format(
-            new Date(post.last_publication_date),
+            new Date(post.first_publication_date),
             'dd MMM yyyy',
             {
               locale: ptBR
@@ -131,10 +131,10 @@ export const getStaticProps: GetStaticProps = async () => {
   // carrega o titulo e o conteudo de todos os documentos do tipo posts
   const response = await prismic.query(
     [
-      Prismic.predicates.at('document.type', 'posts')
+      Prismic.predicates.at('document.type', 'posts'),
     ],
     {
-      fetch: ['publication.title', 'publication.content'],
+      orderings: '[document.first_publication_date desc]',
       pageSize: 2
     }
   );
@@ -144,7 +144,7 @@ export const getStaticProps: GetStaticProps = async () => {
     return {
       uid: post.uid,
       first_publication_date: format(
-        new Date(post.last_publication_date),
+        new Date(post.first_publication_date),
         'dd MMM yyyy',
         {
           locale: ptBR
@@ -164,8 +164,8 @@ export const getStaticProps: GetStaticProps = async () => {
       postsPagination: {
         results: posts,
         next_page: response.next_page,
-      } as PostPagination
-    } as HomeProps,
+      }
+    },
     // informar ao next que a pagina precisa ser regerada a cada 60 segundos
     revalidate: 60, // Segundos 
   }
