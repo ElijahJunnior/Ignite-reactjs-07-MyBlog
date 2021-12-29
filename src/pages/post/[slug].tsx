@@ -10,6 +10,8 @@ import Header from '../../components/Header'
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import { abort } from 'process';
+import { count } from 'console';
 
 
 interface Post {
@@ -35,6 +37,26 @@ interface PostProps {
 
 export default function Post({ post }: PostProps) {
 
+  // conta a quantidade de palavras do post
+  const wordCount = post.data.content.reduce((acc, cur) => {
+    // converte o conteudo do body em texto
+    const bodyText = RichText.asText(cur.body);
+    // soma ao acc a quantidade de palavras do body, caso ele tenha conteudo
+    if (bodyText) {
+      acc += bodyText.trim().split(/\s+/)?.length || 0;
+    }
+    // soma ao acc a quantidade de palavras do heading, caso ele tenha conteudo
+    if (cur.heading) {
+      acc += cur.heading.trim().split(/\s+/)?.length || 0;
+    }
+    // retorno o acumulador
+    return acc;
+
+  }, 0)
+
+  // quantidade de palavras dividido por quantidade média de palavras lidas por minuto
+  const tempoLeitura = Math.ceil(wordCount / 200);
+
   return (
     <>
       <Header />
@@ -44,7 +66,7 @@ export default function Post({ post }: PostProps) {
         <div>
           <time>{post.first_publication_date}</time>
           <span>{post.data.author}</span>
-          <span>{'15 Min'}</span>
+          <span>{`${tempoLeitura} min`}</span>
         </div>
         {
           post.data.content.map((cur, ind) => (
