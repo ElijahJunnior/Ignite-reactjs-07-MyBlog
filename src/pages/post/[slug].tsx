@@ -8,6 +8,7 @@ import { RichText } from 'prismic-dom';
 // othes libs
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+import { FiCalendar, FiUser, FiClock } from 'react-icons/fi'
 // components
 import Header from '../../components/Header'
 // styles
@@ -42,7 +43,10 @@ export default function Post({ post }: PostProps) {
 
   if (router.isFallback) {
     return (
-      <p> Carregando </p>
+      <div className={styles.loading}>
+        <img src={'/images/loading.svg'} />
+        <p> Carregando... </p>
+      </div>
     )
   }
 
@@ -76,22 +80,42 @@ export default function Post({ post }: PostProps) {
   return (
     <>
       <Header />
+      {
+        post.data.banner.url ? (
+          <img src={post.data.banner.url} className={styles.banner} alt='banner' />
+        ) : ''
+      }
       <main className={commonStyles.pageSize}>
-        <img src={post.data.banner.url} alt='banner' />
-        <h1>{post.data.title}</h1>
-        <div>
-          <time>{post.first_publication_date}</time>
+        <h1 className={styles.title}>{post.data.title}</h1>
+        <div className={styles.info}>
+          <FiCalendar />
+          <time>
+            {
+              format(new Date(post.first_publication_date),
+                'dd MMM yyyy',
+                {
+                  locale: ptBR
+                }
+              )
+            }
+          </time>
+          <FiUser />
           <span>{post.data.author}</span>
+          <FiClock />
           <span>{`${tempoLeitura} min`}</span>
         </div>
-        {
-          post.data.content.map((cur, ind) => (
-            <div key={ind}>
-              {cur.heading ? <h2>{cur.heading}</h2> : ''}
-              <div dangerouslySetInnerHTML={{ __html: RichText.asHtml(cur.body) }} />
-            </div>
-          ))
-        }
+        <section className={styles.content}>
+          {
+            post.data.content.map((cur, ind) => (
+              <article key={ind}>
+                {
+                  cur.heading ? <h2>{cur.heading}</h2> : ''
+                }
+                <div dangerouslySetInnerHTML={{ __html: RichText.asHtml(cur.body) }} />
+              </article>
+            ))
+          }
+        </section>
       </main>
     </>
   )
@@ -107,7 +131,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     ],
     {
       orderings: '[document.first_publication_date desc]',
-      pageSize: 4
+      pageSize: 3
     }
   );
   // montando objeto paths para o Next renderizar as paths no momento do build 
@@ -135,11 +159,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     const prismic = getPrismicClient();
     // carregando o post que foi passado pela url da pagina
     const res = await prismic.getByUID('posts', String(params.slug), {});
-
-    for (let int = 0; int < 20000; int++) {
-      const element = 'elias'
-    }
-
     // retornando os dados para a pagina
     return {
       props: {
@@ -147,7 +166,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       },
       revalidate
     };
-
   } catch (err) {
     // logando o erro
     console.log(err);

@@ -103,7 +103,17 @@ export default function Home(props: HomeProps) {
                 <p>{post.data.subtitle}</p>
                 <div>
                   <FiCalendar />
-                  <time>{post.first_publication_date}</time>
+                  <time>
+                    {
+                      format(
+                        new Date(post.first_publication_date),
+                        'dd MMM yyyy',
+                        {
+                          locale: ptBR
+                        }
+                      )
+                    }
+                  </time>
                   <FiUser />
                   <span>{post.data.author}</span>
                 </div>
@@ -135,36 +145,37 @@ export const getStaticProps: GetStaticProps = async () => {
     ],
     {
       orderings: '[document.first_publication_date desc]',
-      pageSize: 2
+      pageSize: 3
     }
   );
 
-  // cria uma lista com os posts já tipados
-  const posts = response.results.map(post => {
-    return {
-      uid: post.uid,
-      first_publication_date: format(
-        new Date(post.first_publication_date),
-        'dd MMM yyyy',
-        {
-          locale: ptBR
-        }
-      ),
-      data: {
-        title: post.data.title,
-        subtitle: post.data.subtitle,
-        author: post.data.author,
-      }
-    } as Post
-  });
+  // // cria uma lista com os posts já tipados
+  // const posts = response.results.map(post => {
+  //   return {
+  //     uid: post.uid,
+  //     first_publication_date: format(
+  //       new Date(post.first_publication_date),
+  //       'dd MMM yyyy',
+  //       {
+  //         locale: ptBR
+  //       }
+  //     ),
+  //     data: {
+  //       title: post.data.title,
+  //       subtitle: post.data.subtitle,
+  //       author: post.data.author,
+  //     }
+  //   } as Post
+  // });
 
   // retorna as propriedades para a função que vai construir a página
   return {
     props: {
-      postsPagination: {
-        results: posts,
-        next_page: response.next_page,
-      }
+      // postsPagination: {
+      //   results: posts,
+      //   next_page: response.next_page,
+      // }
+      postsPagination: response
     },
     // informar ao next que a pagina precisa ser regerada a cada 60 segundos
     revalidate: 60, // Segundos 
