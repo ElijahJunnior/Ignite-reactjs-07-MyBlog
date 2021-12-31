@@ -14,6 +14,7 @@ import { FiCalendar, FiUser } from 'react-icons/fi';
 // styles
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import { ExitPreviewMode } from '../components/ExitPreviewMode';
 
 
 interface Post {
@@ -32,7 +33,8 @@ interface PostPagination {
 }
 
 interface HomeProps {
-  postsPagination: PostPagination;
+  postsPagination: PostPagination,
+  preview: boolean
 }
 
 export default function Home(props: HomeProps) {
@@ -75,7 +77,7 @@ export default function Home(props: HomeProps) {
       <header className={`${styles.header} ${commonStyles.pageSize}`}>
         <img src='/images/logo.svg' alt='logo' />
       </header>
-      <main className={`${styles.mainContainer} ${commonStyles.pageSize}`}>
+      <main className={` ${commonStyles.pageSize}`}>
         {
           posts.map(post => (
             <Link href={`/post/${post.uid}`} key={post.uid}>
@@ -109,12 +111,15 @@ export default function Home(props: HomeProps) {
             </button>
           ) : ''
         }
+        {
+          props.preview ? <ExitPreviewMode className={styles.exitPreview} /> : ''
+        }
       </main>
     </>
   )
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps = async ({ preview = false, previewData }) => {
 
   // cria um novo cliente prismic
   const prismic = getPrismicClient();
@@ -125,15 +130,17 @@ export const getStaticProps: GetStaticProps = async () => {
       Prismic.predicates.at('document.type', 'posts'),
     ],
     {
-      orderings: '[document.first_publication_date desc]',
-      pageSize: 3
+      orderings: !preview ? '[document.first_publication_date desc]' : '',
+      pageSize: 3,
+      ref: previewData?.ref || null,
     }
   );
 
   // retorna as propriedades para a função que vai construir a página
   return {
     props: {
-      postsPagination: response
+      postsPagination: response,
+      preview,
     },
     // informar ao next que a pagina precisa ser regerada a cada 60 segundos
     revalidate: 60, // Segundos 

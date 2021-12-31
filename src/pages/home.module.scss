@@ -9,10 +9,6 @@
 
 }
 
-.mainContainer {
-    padding-bottom: 1rem;
-}
-
 .post {
     display: block;
     margin-bottom: 3rem;
@@ -54,12 +50,15 @@
     &:hover {
         filter: brightness(0.8);
     }
+
+    &:last-of-type {
+        margin-bottom: 4rem;
+    }
     
 }
 
 .nextPageButton {
-    margin-top: 1rem;
-    margin-bottom: 3rem;
+    margin-bottom: 4rem;
     background: transparent;
     color: var(--highlight);
     border: none;
@@ -72,4 +71,8 @@
     &:hover {
         filter: brightness(0.8);
     }
+}
+
+.exitPreview {
+    margin-bottom: 4rem;
 }

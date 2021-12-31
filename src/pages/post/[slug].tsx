@@ -11,6 +11,8 @@ import ptBR from 'date-fns/locale/pt-BR';
 import { FiCalendar, FiUser, FiClock } from 'react-icons/fi'
 // components
 import Header from '../../components/Header'
+import { Comments } from '../../components/Comments'
+import { ExitPreviewMode } from '../../components/ExitPreviewMode';
 // styles
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
@@ -33,10 +35,11 @@ interface Post {
 }
 
 interface PostProps {
-  post: Post;
+  post: Post,
+  preview: boolean;
 }
 
-export default function Post({ post }: PostProps) {
+export default function Post({ post, preview }: PostProps) {
 
   // declareando variaveis usadas na função
   const router = useRouter();
@@ -85,7 +88,7 @@ export default function Post({ post }: PostProps) {
           <img src={post.data.banner.url} className={styles.banner} alt='banner' />
         ) : ''
       }
-      <main className={commonStyles.pageSize}>
+      <main className={`${commonStyles.pageSize}`}>
         <h1 className={styles.title}>{post.data.title}</h1>
         <div className={styles.info}>
           <FiCalendar />
@@ -116,6 +119,10 @@ export default function Post({ post }: PostProps) {
             ))
           }
         </section>
+        <Comments className={styles.comments} />
+        {
+          preview ? <ExitPreviewMode className={styles.exitPreview} /> : ''
+        }
       </main>
     </>
   )
@@ -149,7 +156,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   }
 };
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+export const getStaticProps: GetStaticProps<PostProps> = async ({ params, preview = false, previewData }) => {
 
   // definido o intervalo e mque o next vai recriar as páginas
   const revalidate = 60;
@@ -158,11 +165,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     // montando o objeto cliente do prismic 
     const prismic = getPrismicClient();
     // carregando o post que foi passado pela url da pagina
-    const res = await prismic.getByUID('posts', String(params.slug), {});
+    const res = await prismic.getByUID('posts', String(params.slug), { ref: previewData?.ref ?? null });
     // retornando os dados para a pagina
     return {
       props: {
-        post: res
+        post: res,
+        preview
       },
       revalidate
     };
