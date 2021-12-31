@@ -53,27 +53,8 @@ export default function Home(props: HomeProps) {
       // executa o consumo para pegar os dados da próxima pagina
       const response = await fetch(nextPage).then(response => response.json());
 
-      // cria uma variavel com os posts da próxima pagina já formatados
-      const postsLoaded = response.results?.map(post => {
-        return {
-          uid: post.uid,
-          first_publication_date: format(
-            new Date(post.first_publication_date),
-            'dd MMM yyyy',
-            {
-              locale: ptBR
-            }
-          ),
-          data: {
-            title: post.data.title,
-            subtitle: post.data.subtitle,
-            author: post.data.author,
-          }
-        } as Post
-      });
-
       // atualiza o state adcionando os novos posts
-      setPosts([...posts, ...postsLoaded]);
+      setPosts([...posts, ...response.results]);
 
       // atualiza o state com o novo link de próxima página
       setNextPage(response?.next_page || '');
@@ -149,32 +130,9 @@ export const getStaticProps: GetStaticProps = async () => {
     }
   );
 
-  // // cria uma lista com os posts já tipados
-  // const posts = response.results.map(post => {
-  //   return {
-  //     uid: post.uid,
-  //     first_publication_date: format(
-  //       new Date(post.first_publication_date),
-  //       'dd MMM yyyy',
-  //       {
-  //         locale: ptBR
-  //       }
-  //     ),
-  //     data: {
-  //       title: post.data.title,
-  //       subtitle: post.data.subtitle,
-  //       author: post.data.author,
-  //     }
-  //   } as Post
-  // });
-
   // retorna as propriedades para a função que vai construir a página
   return {
     props: {
-      // postsPagination: {
-      //   results: posts,
-      //   next_page: response.next_page,
-      // }
       postsPagination: response
     },
     // informar ao next que a pagina precisa ser regerada a cada 60 segundos
