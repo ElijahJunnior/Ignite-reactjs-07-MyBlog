@@ -1,6 +1,7 @@
 // next
 import { useRouter } from 'next/router';
 import { GetStaticPaths, GetStaticProps } from 'next';
+import Link from 'next/link';
 // prismic
 import { getPrismicClient } from '../../services/prismic';
 import Prismic from '@prismicio/client';
@@ -19,6 +20,8 @@ import styles from './post.module.scss';
 
 interface Post {
   first_publication_date: string | null;
+  last_publication_date: string | null;
+  uid: string;
   data: {
     title: string;
     banner: {
@@ -36,10 +39,12 @@ interface Post {
 
 interface PostProps {
   post: Post,
+  prevPost: Post,
+  nextPost: Post,
   preview: boolean;
 }
 
-export default function Post({ post, preview }: PostProps) {
+export default function Post({ post, preview, prevPost, nextPost }: PostProps) {
 
   // declareando variaveis usadas na função
   const router = useRouter();
@@ -78,7 +83,10 @@ export default function Post({ post, preview }: PostProps) {
 
   }
 
-  const tempoLeitura = calcularTempoLeitura()
+  const tempoLeitura = calcularTempoLeitura();
+
+  console.log('__PREV_POST__', prevPost);
+  console.log('__NEXT_POST__', nextPost);
 
   return (
     <>
@@ -90,7 +98,7 @@ export default function Post({ post, preview }: PostProps) {
       }
       <main className={`${commonStyles.pageSize}`}>
         <h1 className={styles.title}>{post.data.title}</h1>
-        <div className={styles.info}>
+        <section className={styles.info}>
           <FiCalendar />
           <time>
             {
@@ -106,7 +114,20 @@ export default function Post({ post, preview }: PostProps) {
           <span>{post.data.author}</span>
           <FiClock />
           <span>{`${tempoLeitura} min`}</span>
-        </div>
+          { // data em que o post foi editado
+            (post.last_publication_date && post.last_publication_date != post.first_publication_date) ? (
+              <p>
+                {
+                  format(new Date(post.last_publication_date),
+                    "'* editado em 'dd MMM yyyy ', ás 'HH:mm",
+                    {
+                      locale: ptBR
+                    })
+                }
+              </p>
+            ) : ''
+          }
+        </section>
         <section className={styles.content}>
           {
             post.data.content.map((cur, ind) => (
@@ -119,11 +140,50 @@ export default function Post({ post, preview }: PostProps) {
             ))
           }
         </section>
+      </main>
+      <footer className={commonStyles.pageSize}>
+        <div className={styles.divider} />
+        <div className={styles.postNavigation}>
+          {
+            prevPost ? (
+              <Link href={`/post/${prevPost.uid}`}>
+                <a className={styles.prev}>
+                  <p>
+                    {
+                      prevPost.data?.title.substring(0, Math.min(prevPost.data.title.length, 30)).trim() || ''
+                    }
+                    {
+                      (prevPost.data.title && prevPost.data.title.length > 30) ? '...' : ''
+                    }
+                  </p>
+                  <span> Post Anterior </span>
+                </a>
+              </Link>
+            ) : ''
+          }
+          {
+            nextPost ? (
+              <Link href={`/post/${nextPost.uid}`}>
+                <a className={styles.next}>
+                  <p>
+                    {
+                      nextPost.data?.title.substring(0, Math.min(nextPost.data.title.length, 30)).trim() || ''
+                    }
+                    {
+                      (nextPost.data.title && nextPost.data.title.length > 30) ? '...' : ''
+                    }
+                  </p>
+                  <span> Próximo Post</span>
+                </a>
+              </Link>
+            ) : ''
+          }
+        </div>
         <Comments className={styles.comments} />
         {
           preview ? <ExitPreviewMode className={styles.exitPreview} /> : ''
         }
-      </main>
+      </footer>
     </>
   )
 }
@@ -156,7 +216,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   }
 };
 
-export const getStaticProps: GetStaticProps<PostProps> = async ({ params, preview = false, previewData }) => {
+export const getStaticProps: GetStaticProps = async ({ params, preview = false, previewData }) => {
 
   // definido o intervalo e mque o next vai recriar as páginas
   const revalidate = 60;
@@ -165,11 +225,32 @@ export const getStaticProps: GetStaticProps<PostProps> = async ({ params, previe
     // montando o objeto cliente do prismic 
     const prismic = getPrismicClient();
     // carregando o post que foi passado pela url da pagina
-    const res = await prismic.getByUID('posts', String(params.slug), { ref: previewData?.ref ?? null });
+    const post = await prismic.getByUID('posts', String(params.slug), { ref: previewData?.ref ?? null });
+
+    const prevPost = (await prismic.query(
+      Prismic.predicates.at('document.type', 'posts'),
+      {
+        pageSize: 1,
+        after: `${post.id}`,
+        orderings: '[document.first_publication_date desc]'
+      }
+    ))?.results[0] || null;
+
+    const nextPost = (await prismic.query(
+      Prismic.predicates.at('document.type', 'posts'),
+      {
+        pageSize: 1,
+        after: `${post.id}`,
+        orderings: '[document.first_publication_date]'
+      }
+    ))?.results[0] || null;
+
     // retornando os dados para a pagina
     return {
       props: {
-        post: res,
+        post,
+        prevPost,
+        nextPost,
         preview
       },
       revalidate

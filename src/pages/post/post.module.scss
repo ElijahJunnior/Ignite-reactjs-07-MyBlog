@@ -16,16 +16,22 @@
 
 .info{ 
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     font-weight: 400;
     font-size: 0.875rem;
     line-height: 1.0625rem;
     color: var(--info);
     margin-bottom: 4rem;
-
+    flex-wrap: wrap;
+    
     time, span {
         margin-left: 0.5rem;
         margin-right: 1.5rem;
+    } 
+    
+    p {
+        flex-basis: 100%;
+        margin-top: 1rem;
     }
 }
 
@@ -72,6 +78,53 @@
             }
         }
     }
+}
+
+.divider { 
+    height: 1px; width: 100%;
+    border-top: 1px solid var(--body);
+    opacity: 0.1;
+    margin-bottom: 4rem;
+}
+
+.postNavigation {
+    position: relative;
+    padding-bottom: 5rem;
+        
+    a {
+        width: 50%;
+        position: absolute;
+        transition: filter 0.2s;
+
+        &:hover {
+            filter: brightness(0.85);
+        }
+    }
+
+    .prev {
+        left: 0;
+    }
+
+    .next {
+        right: 0;
+        text-align: right;
+    }
+
+    p {
+        font-weight: 400;
+        font-size: 1.125rem;
+        line-height: 1.375rem;
+        color: var(--heading);
+        margin-bottom: 0.5rem
+    }
+
+    span {
+        font-weight: 600;
+        font-size: 1rem;
+        line-height: 1.1875rem;
+        color: var(--highlight);
+    }
+
 }
 
 .comments {
